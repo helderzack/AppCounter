@@ -1,6 +1,7 @@
 package com.helder.appcounter
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,13 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,8 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.helder.appcounter.ui.theme.AppCounterTheme
-import java.util.Timer
-import java.util.TimerTask
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,38 +52,42 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppCounter(modifier: Modifier = Modifier) {
     Column(modifier = modifier.padding(16.dp)) {
+        val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
         var time by rememberSaveable {
-            mutableStateOf("000000")
+            mutableStateOf(LocalTime.parse("00:00:00", formatter))
         }
 
-        var timeIndex by rememberSaveable {
-            mutableIntStateOf(5)
+        var digit by rememberSaveable {
+            mutableStateOf(time.format(formatter).toString().toCharArray())
         }
-
-        var onChangedTime by rememberSaveable {
-            mutableStateOf("000000")
+        var digitIndex by rememberSaveable {
+            mutableIntStateOf(digit.size - 1)
         }
-
+        Text(String(digit))
         Text(text = "Timer")
-        Text(text = "On Changed Time: $onChangedTime")
-        Text(text = "Current index: $timeIndex")
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "${time[0]}${time[1]}h ${time[2]}${time[3]}m ${time[4]}${time[5]}s", fontSize = 30.sp)
+            Text(
+                text = time.format(DateTimeFormatter.ofPattern("HH:mm:ss")),
+                fontSize = 32.sp
+            )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 for (i in 1..3) {
                     Button(onClick = {
-                        if(!checkIfFull(timeIndex)) {
-                            val sb = StringBuilder(onChangedTime)
-                            sb.setCharAt(timeIndex, '0' + i)
-                            onChangedTime = sb.toString()
-                            time = onChangedTime
-                            timeIndex--
+                        if (digitIndex >= 0 && digit[digitIndex] != ':') {
+                            digit[digitIndex] = i.digitToChar()
+                            Log.d("DIGIT", digitIndex.toString())
+                            digit = digit.copyOf()
+                        }
+                        digitIndex--
+                        when (digitIndex) {
+                            2 -> digitIndex--
+                            5 -> digitIndex--
                         }
                     }) {
                         Text(text = "$i")
@@ -95,12 +99,15 @@ fun AppCounter(modifier: Modifier = Modifier) {
             ) {
                 for (i in 4..6) {
                     Button(onClick = {
-                        if(!checkIfFull(timeIndex)) {
-                            val sb = StringBuilder(onChangedTime)
-                            sb.setCharAt(timeIndex, '0' + i)
-                            onChangedTime = sb.toString()
-                            time = onChangedTime
-                            timeIndex--
+                        if (digitIndex >= 0 && digit[digitIndex] != ':') {
+                            digit[digitIndex] = i.digitToChar()
+                            Log.d("DIGIT", digitIndex.toString())
+                            digit = digit.copyOf()
+                        }
+                        digitIndex--
+                        when (digitIndex) {
+                            2 -> digitIndex--
+                            5 -> digitIndex--
                         }
                     }) {
                         Text(text = "$i")
@@ -112,12 +119,15 @@ fun AppCounter(modifier: Modifier = Modifier) {
             ) {
                 for (i in 7..9) {
                     Button(onClick = {
-                        if(!checkIfFull(timeIndex)) {
-                            val sb = StringBuilder(onChangedTime)
-                            sb.setCharAt(timeIndex, '0' + i)
-                            onChangedTime = sb.toString()
-                            time = onChangedTime
-                            timeIndex--
+                        if (digitIndex >= 0 && digit[digitIndex] != ':') {
+                            digit[digitIndex] = i.digitToChar()
+                            Log.d("DIGIT", digitIndex.toString())
+                            digit = digit.copyOf()
+                        }
+                        digitIndex--
+                        when (digitIndex) {
+                            2 -> digitIndex--
+                            5 -> digitIndex--
                         }
                     }) {
                         Text(text = "$i")
@@ -128,22 +138,24 @@ fun AppCounter(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Button(onClick = {
-                    if(!checkIfFull(timeIndex) && timeIndex != 5) {
-                        val sb = StringBuilder(onChangedTime)
-                        sb.setCharAt(timeIndex, '0' + 0)
-                        onChangedTime = sb.toString()
-                        time = onChangedTime
-                        timeIndex--
+                    if (digitIndex < digit.size - 1 && digitIndex >= 0 && digit[digitIndex] != ':') {
+                        digit[digitIndex--] = 0.digitToChar()
+                        Log.d("DIGIT", digitIndex.toString())
+                        digit = digit.copyOf()
                     }
-
+                    digitIndex--
+                    when (digitIndex) {
+                        2 -> digitIndex--
+                        5 -> digitIndex--
+                    }
                 }) {
                     Text(text = "0")
                 }
                 IconButton(
                     onClick = {
-                        time = "00h 00m 00s"
-                        onChangedTime = "000000"
-                        timeIndex = 5
+                        time = LocalTime.parse("00:00:00", formatter)
+                        digit = time.format(formatter).toString().toCharArray()
+                        digitIndex = digit.size - 1
                     },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.error,
@@ -153,22 +165,35 @@ fun AppCounter(modifier: Modifier = Modifier) {
                     Icon(imageVector = Icons.Default.Clear, contentDescription = "Clear Timer")
                 }
             }
+            IconButton(
+                onClick = {
+                    val timeString = digit.joinToString("")
+                    val hours = timeString.substring(0,2).toInt()
+                    val minutes = timeString.substring(3,5).toInt()
+                    val seconds = timeString.substring(6).toInt()
+                    Log.d("TIME", ": $hours -> $minutes -> $seconds")
+
+                    val totalSeconds = (hours * 3600) + (minutes * 60) + seconds
+                    val normalizedHours = (totalSeconds / 3600) % 24
+                    val remainingSeconds = totalSeconds % 3600
+                    val normalizedMinutes = remainingSeconds / 60
+                    val normalizedSeconds = remainingSeconds % 60
+
+                    time = LocalTime.of(normalizedHours, normalizedMinutes, normalizedSeconds)
+
+//                    val timer = fixedRateTimer(initialDelay = 0, period = 1000) {
+//                        this.cancel()
+//                    }
+                },
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Clear Timer")
+            }
         }
     }
-}
-
-//private fun changeString() {
-//    if(!checkIfFull(timeIndex) && timeIndex != 0) {
-//        val sb = StringBuilder(onChangedTime)
-//        sb.setCharAt(timeIndex, '0' + 0)
-//        onChangedTime = sb.toString()
-//        time = onChangedTime
-//        timeIndex--
-//    }
-//}
-
-private fun checkIfFull(index: Int): Boolean {
-    return index <= -1
 }
 
 @Preview(showBackground = true)
