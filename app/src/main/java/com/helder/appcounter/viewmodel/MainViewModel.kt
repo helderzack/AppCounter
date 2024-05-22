@@ -10,8 +10,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.concurrent.fixedRateTimer
 
-class MainViewModel(
-): ViewModel() {
+class MainViewModel: ViewModel() {
 
     private val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 
@@ -20,7 +19,7 @@ class MainViewModel(
         private set
     private var digitIndex by mutableIntStateOf(digit.size - 1)
 
-    fun startCountdown(onFinishedTimer: () -> Unit,) {
+    fun startCountdown(createNotification: () -> Unit, onFinishedTimer: () -> Unit, ) {
         val timeString = digit.joinToString("")
         val hours = timeString.substring(0, 2).toInt()
         val minutes = timeString.substring(3, 5).toInt()
@@ -35,17 +34,20 @@ class MainViewModel(
 
         time = LocalTime.of(normalizedHours, normalizedMinutes, normalizedSeconds)
 
+        createNotification()
+
         fixedRateTimer(initialDelay = 0, period = 1000) {
             time = time.minusSeconds(1)
             digit = time.format(formatter).toString().toCharArray()
-            if(time.equals(LocalTime.parse("00:00:00", formatter))) {
+            if (time.equals(LocalTime.parse("00:00:00", formatter))) {
                 onFinishedTimer()
                 this.cancel()
             }
         }
     }
+
     fun updateDigit(value: Int) {
-        if(value == 0 && digitIndex >= digit.size - 1) {
+        if (value == 0 && digitIndex >= digit.size - 1) {
             return
         }
         if (digitIndex >= 0 && digit[digitIndex] != ':') {
@@ -65,5 +67,4 @@ class MainViewModel(
         digit = time.format(formatter).toString().toCharArray()
         digitIndex = digit.size - 1
     }
-
 }
