@@ -1,6 +1,7 @@
 package com.helder.appcounter.view
 
 import android.os.Bundle
+import android.os.Looper
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -126,6 +127,7 @@ fun AppCounter(mainViewModel: MainViewModel, modifier: Modifier = Modifier) {
 
                 onClick = {
                     mainViewModel.startCountdown {
+                        Looper.prepare()
                         Toast.makeText(context, "Timer was completed!", Toast.LENGTH_SHORT).show()
                     }
                 },

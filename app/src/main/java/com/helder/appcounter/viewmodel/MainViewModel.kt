@@ -35,11 +35,12 @@ class MainViewModel(
 
         time = LocalTime.of(normalizedHours, normalizedMinutes, normalizedSeconds)
 
-        val timer = fixedRateTimer(initialDelay = 0, period = 1000) {
+        fixedRateTimer(initialDelay = 0, period = 1000) {
             time = time.minusSeconds(1)
             digit = time.format(formatter).toString().toCharArray()
-            if(time.equals("00:00:00")) {
+            if(time.equals(LocalTime.parse("00:00:00", formatter))) {
                 onFinishedTimer()
+                this.cancel()
             }
         }
     }
